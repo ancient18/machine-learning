@@ -97,7 +97,7 @@ class DecisionTree {
       return { category: this.mostFrequentValue(trainingSet, categoryAttr) };
     }
     let alreadyChecked = []; //标识已经计算过了
-	
+
     let bestSplit = { gain: 0 }; //储存当前最佳的分割节点数据信息
     //遍历数据集
     for (let item of trainingSet) {
@@ -193,27 +193,30 @@ class DecisionTree {
 
 const fs = require("fs");
 const readline = require("readline");
+const path = require("path");
 
 //调用方法
-const path = "./Iris/iris.data";
-read_file(path, function (data) {
+const fpath = path.resolve("./", "decisonTree/Iris/iris.data");
+read_file(fpath, function (data) {
   console.log(data);
 });
 
 let sepalLength, sepalWieth, petalLength, petalWidth, className;
 
-//定义读取方法
+// 定义读取方法;
 function read_file(path, callback) {
   const fRead = fs.createReadStream(path);
   const objReadline = readline.createInterface({
     input: fRead,
   });
+
   const arr = new Array();
   objReadline.on("line", function (line) {
     const lineArr = line.split(",");
     [sepalLength, sepalWieth, petalLength, petalWidth, className] = lineArr;
     arr.push({ sepalLength, sepalWieth, petalLength, petalWidth, className });
   });
+
   objReadline.on("close", function () {
     const decisionTree = new DecisionTree({
       trainingSet: arr, //训练集
@@ -229,7 +232,6 @@ function read_file(path, callback) {
     };
 
     console.log(comic, decisionTree.predict(comic));
+    console.log(arr);
   });
 }
-
-
