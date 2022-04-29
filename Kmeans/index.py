@@ -1,10 +1,11 @@
+from cgi import print_arguments
 import matplotlib.pyplot as plt
 from sklearn import datasets
 import numpy as np
 
 
 class KMeans:
-    def __init__(self, n_clusters=5, max_iter=15):
+    def __init__(self, n_clusters=5, max_iter=2):
         self._n_clusters = n_clusters
         self._X = None
         self._y = None
@@ -13,8 +14,6 @@ class KMeans:
 
     def fit(self, X):
         self._X = X
-        n = X.shape[0]
-        d = X.shape[1]
         # 随机生成中心点
         print(X.min(axis=0))
         print(X.max(axis=0))
@@ -27,8 +26,10 @@ class KMeans:
             # 求样本点与每个中心点的距离
             distances = np.array(
                 [np.sum((X-self._center[i, :])**2, axis=1) for i in range(self._n_clusters)])
+
             # 样本距离哪个最近中心点
             self._y = np.argmin(distances.T, axis=1)
+
             # 对样本点加权平均计算新的中心点
             self._center = np.array(
                 [np.mean(X[self._y == i, :], axis=0) for i in range(self._n_clusters)])
