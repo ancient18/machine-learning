@@ -1,4 +1,3 @@
-from cgi import print_arguments
 import matplotlib.pyplot as plt
 from sklearn import datasets
 import numpy as np
@@ -30,9 +29,12 @@ class KMeans:
             # 样本距离哪个最近中心点
             self._y = np.argmin(distances.T, axis=1)
 
+            print(self._y)
+
             # 对样本点加权平均计算新的中心点
             self._center = np.array(
                 [np.mean(X[self._y == i, :], axis=0) for i in range(self._n_clusters)])
+            print(self._center)
             step += 1
             # 显示中间过程
             plt.figure()
@@ -49,6 +51,7 @@ class KMeans:
 
 iris = datasets.load_iris()
 X = iris.data[:, 2:]
+print(np.sum([1,0,0,0]==0))
 
-km1 = KMeans(n_clusters=3)
-km1.fit(X)
+# km1 = KMeans(n_clusters=3)
+# km1.fit(X)
