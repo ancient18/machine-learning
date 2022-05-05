@@ -86,6 +86,7 @@ def draw_pic(samples, sampleTag, clusterCenter):
 def tryKmeans():
     k = 3
     iris_data = load_iris()
+    # 这里只取二维
     data = iris_data[:, :2]
     clusterCenter, sampleTag, SSE = kMeans_way(data, k)
     if np.isnan(clusterCenter).any():
