@@ -1,61 +1,68 @@
 from sklearn.datasets import make_moons, make_circles
-from queue import Queue
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-class DBSCAN:
-    def __init__(self, min_samples=10, r=0.15):
-        self.min_samples = min_samples
-        self.r = r
-        self.X = None
-        self.label = None
-        self.n_class = 0
-
-    def fit(self, X):
-        self.X = X
-        self.label = np.zeros(X.shape[0])
-        q = Queue()
-        for i in range(len(self.X)):
-            if self.label[i] == 0:
-                q.put(self.X[i])
-                if self.X[(np.sqrt(np.sum((self.X - self.X[i]) ** 2, axis=1)) <= self.r) & (self.label == 0)].shape[0] >= self.min_samples:
-                    self.n_class += 1
-                while not q.empty():
-                    p = q.get()
-                    neighbors = self.X[(
-                        np.sqrt(np.sum((self.X - p) ** 2, axis=1)) <= self.r) & (self.label == 0)]
-                    if neighbors.shape[0] >= self.min_samples:
-                        mark = (
-                            np.sqrt(np.sum((self.X - p) ** 2, axis=1)) <= self.r)
-                        self.label[mark] = np.ones(
-                            self.label[mark].shape) * self.n_class
-                        # print(self.label)
-                        for x in neighbors:
-                            q.put(x)
-
-    def plot_dbscan_2D(self):
-        plt.rcParams['font.sans-serif'] = ["SimHei"]
-        plt.rcParams['axes.unicode_minus'] = False
-        for i in range(self.n_class+1):
-            if i == 0:
-                label = '异常数据'
-            else:
-                label = '第'+str(i) + '类数据'
-            plt.scatter(self.X[self.label == i, 0],
-                        self.X[self.label == i, 1], label=label)
-        plt.legend()
-        plt.show()
+def DBSCAN(x, eps, MinPts):
+    n = x.shape[0]
+    # 多创建一列作为visited标志
+    column = np.array([-1]*n)
+    x = np.c_[x, column]
+    # 簇类别
+    cluster_id = -1
+    # 簇种类的数组
+    cluster_id_list = []
+    for i in range(n):
+        # 如果该点已经被访问过，则跳过
+        if x[i, -1] != -1:
+            continue
+        cluster_id += 1
+        x[i, -1] = cluster_id
+        cluster_id_list.append(cluster_id)
+        # 寻找邻域
+        neighbor_idx = region_query(x, x[i], eps)
+        if len(neighbor_idx) < MinPts:
+            x[i, -1] = -1
+            cluster_id_list.remove(cluster_id)
+            cluster_id -= 1
+        else:
+            # 扩展簇
+            expand_cluster(x, neighbor_idx, i, cluster_id, eps, MinPts)
+    return x, cluster_id_list
 
 
-X, _ = make_circles(n_samples=1000, factor=0.5, noise=0.1)
+# 寻找邻域
+def region_query(x, i, eps):
+    neighbor_idx = []
+    for j in range(x.shape[0]):
+        # 如果距离小于阈值，则加入邻域
+        if np.sqrt(np.sum((i[:-1] - x[j, :-1])**2)) <= eps:
+            neighbor_idx.append(x[j])
+    return neighbor_idx
 
-db = DBSCAN(4, 0.15)
-db.fit(X)
-db.plot_dbscan_2D()
+
+# 扩展簇
+def expand_cluster(x, neighbor_idx, i, cluster_id, eps, MinPts):
+    for j in neighbor_idx:
+        if j[-1] == -1:
+            j[-1] = cluster_id
+            neighbor_idx_ = region_query(x, j, eps)
+            if len(neighbor_idx_) >= MinPts:
+                # 如果邻域内的点数大于阈值，则将邻域加入邻域
+                neighbor_idx.extend(neighbor_idx_)
+
+
+# X, _ = make_circles(n_samples=1000, factor=0.1, noise=0.1)
 
 
 X, _ = make_moons(n_samples=1000, noise=0.05)
-db = DBSCAN(10, 0.15)
-db.fit(X)
-db.plot_dbscan_2D()
+
+x, cluster_id_list = DBSCAN(X, 0.2, 10)
+
+print(cluster_id_list)
+
+# # 将结果可视化
+plt.rcParams['font.sans-serif'] = ["SimHei"]
+plt.rcParams['axes.unicode_minus'] = False
+plt.scatter(x[:, 0], x[:, 1],c=x[:,-1])
+plt.show()

@@ -1,9 +1,8 @@
 from xmlrpc.client import MAXINT
 import numpy as np
 import matplotlib.pyplot as plt
-# from sklearn.datasets import load_iris
 
-
+# 加载数据集，自己实现
 def load_iris():
     with open('iris.data', 'r') as f:
         data = []
@@ -20,28 +19,47 @@ def distance(vex1, vex2):
     # 需要自己实现，实现两个数据之间距离的计算
     return np.sum(np.power(vex1-vex2, 2))
 
+def InitialCenter(x, K):
+    c0_idx = int(np.random.uniform(0, len(x)))
+    centroid = x[c0_idx].reshape(1, -1)  # 选择第一个簇中心
+    k = 1
+    n = x.shape[0]
+    while k < K:
+        ls = []
+        for i in range(n):
+            min_pts = np.max(np.sum((centroid - x[i])**2, axis=1))
+            ls.append(min_pts)
+        new_c_idx = np.argmax(ls)
+        centroid = np.vstack([centroid, x[new_c_idx]])
+        k += 1
+    return centroid
+
+count=0
 
 def kMeans_way(S, k, distMeas=distance):
     # 数据行数
     m = np.shape(S)[0]
-
+    global count
     sampleTag = np.zeros(m)
 
     # 数据列数，数据有几个属性
     n = np.shape(S)[1]
     #print (m,n)
     # 此处为初始化簇中心
-    clusterCenter = np.mat(np.zeros((k, n)))
-    for j in range(n):
-        minJ = min(S[:, j])
-        maxJ = max(S[:, j])
-        rangeJ = float(maxJ-minJ)
-        clusterCenter[:, j] = np.mat(minJ + rangeJ*np.random.rand(k, 1))
+    # clusterCenter = np.mat(np.zeros((k, n)))
+    clusterCenter=InitialCenter(S, k)
+    print(clusterCenter)
+    # for j in range(n):
+    #     minJ = min(S[:, j])
+    #     maxJ = max(S[:, j])
+    #     rangeJ = float(maxJ-minJ)
+    #     clusterCenter[:, j] = np.mat(minJ + rangeJ*np.random.rand(k, 1))
 
     sampleTagChanged = True
     SSE = 0.0
     # 更新簇中心
     while sampleTagChanged:
+        count+=1
         sampleTagChanged = False
         # 更新簇中心
         for i in range(m):
@@ -103,3 +121,12 @@ def tryKmeans():
 if __name__ == '__main__':
     while(tryKmeans() == 0):
         print("-------------ing------------")
+    print(count)
+
+
+
+
+# data=load_iris()
+# print(InitialCenter(data[:,:2], 3))
+
+
